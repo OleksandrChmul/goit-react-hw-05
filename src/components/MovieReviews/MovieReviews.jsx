@@ -1,34 +1,46 @@
-import { useParams } from 'react-router-dom';
-import useFetch from '../../utils/useFetch';
-import Error from '../Error/Error';
-import Loading from '../Loading/Loading';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router";
+import requests from "../../js/api";
+import Loader from "../Loader/Loader";
+import toast, { Toaster } from "react-hot-toast";
 
-export default function MoviesRewiews() {
-  const { movieId } = useParams();
-  const { data, isLoading, error } = useFetch({
-    component: 'movieReviews',
-    param: movieId,
-    data: {},
-  });
-  const { id, results } = data;
+const MovieReviews = () => {
+  const { id } = useParams();
+  const [reviews, setReviews] = useState([]);
+  const [isLoader, setLoader] = useState(false);
 
+  useEffect(() => {
+    const addReviews = async () => {
+      setLoader(true);
+      try {
+        const response = await requests.getReviews(id);
+        setReviews(response.data.results);
+      } catch (error) {
+        const notify = () => toast.error(error.message);
+        notify();
+      } finally {
+        setLoader(false);
+      }
+    };
+    addReviews();
+  }, [id]);
   return (
-    <>
-      {isLoading && <Loading />}
-      {error && <Error message={error} />}
-      {id && results.length === 0 && (
-        <p>We don&apos;t have any review for this movie</p>
-      )}
-      {id && results.length > 0 && (
+    <div>
+      {isLoader && <Loader />}
+      {reviews.length !== 0 ? (
         <ul>
-          {results.map(rev => (
-            <li key={rev.id}>
-              <h4>{`Author: ${rev.author}`}</h4>
-              <p>{rev.content}</p>
+          {reviews.map((i) => (
+            <li key={i.id}>
+              <h2>Author: {i.author}</h2>
+              <p>{i.content}</p>
             </li>
           ))}
         </ul>
+      ) : (
+        <p>We don't have any reviews for this movie</p>
       )}
-    </>
+      <Toaster />
+    </div>
   );
-}
+};
+export default MovieReviews;

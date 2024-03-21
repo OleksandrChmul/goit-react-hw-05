@@ -1,42 +1,58 @@
-import { useParams } from 'react-router-dom';
-import tmdbAPI from '../../utils/tmdb-api';
-import useFetch from '../../utils/useFetch';
-import Error from '../Error/Error';
-import Loading from '../Loading/Loading';
-import styles from './MovieCast.module.css';
+import React, { useEffect, useState } from "react";
+import requests from "../../js/api";
+import { useParams } from "react-router";
+import css from "./MovieCast.module.css";
+import image from "../../img/no-result.jpeg";
+import Loader from "../Loader/Loader";
+import toast, { Toaster } from "react-hot-toast";
 
-export default function MoviesCast() {
-  const { movieId } = useParams();
-  const { data, isLoading, error } = useFetch({
-    component: 'movieCast',
-    param: movieId,
-    data: {},
-  });
-  const { id, cast } = data;
+const MovieCast = () => {
+  const { id } = useParams();
+  const [cast, setCast] = useState([]);
+  const [isLoader, setLoader] = useState(false);
 
+  useEffect(() => {
+    setLoader(true);
+    const addActors = async () => {
+      try {
+        const response = await requests.getCast(id);
+        setCast(response.data.cast);
+      } catch (error) {
+        const notify = () => toast.error(error.message);
+        notify();
+      } finally {
+        setLoader(false);
+      }
+    };
+    addActors();
+  }, [id]);
   return (
-    <>
-      {isLoading && <Loading />}
-      {error && <Error message={error} />}
-      {id && cast.length === 0 && (
-        <p>We don&apos;t have any credits for this movie</p>
-      )}
-      {id && cast.length > 0 && (
-        <ul className={styles.list}>
-          {cast.map(actor => (
-            <li key={actor.id} className={styles.item}>
+    <div className={css.block}>
+      {isLoader && <Loader />}
+      {cast.length !== 0 ? (
+        <ul className={css.list}>
+          {cast.map((i) => (
+            <li key={i.id}>
               <img
-                className={styles.photo}
-                src={`${tmdbAPI.posterImagePath}${actor.profile_path}`}
-                alt={`${actor.name} photo`}
-                loading="lazy"
+                src={
+                  i.profile_path
+                    ? "https://image.tmdb.org/t/p/w500" + i.profile_path
+                    : image
+                }
+                alt=""
+                height={120}
+                width={100}
               />
-              <h4 className={styles.nameText}>{actor.name}</h4>
-              <p className={styles.charText}>Character: {actor.character}</p>
+              <p>{i.name}</p>
+              {i.character && <p>Character: {i.character}</p>}
             </li>
           ))}
         </ul>
+      ) : (
+        <p>We don't have any actors for this movie</p>
       )}
-    </>
+      <Toaster />
+    </div>
   );
-}
+};
+export default MovieCast;

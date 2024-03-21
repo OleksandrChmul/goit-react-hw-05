@@ -1,13 +1,27 @@
-.container {
-  border-bottom: 1px solid #646cff;
+.header {
+  height: 80px;
+  background-color: #fafafa;
+  box-shadow: 0px 0px 10px #111;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  padding: 0 100px;
 }
-
 .list {
   display: flex;
-  gap: 16px;
-  list-style: none;
+  align-items: center;
+  justify-content: start;
+  gap: 20px;
+  & > li {
+    list-style-type: none;
+  }
 }
-
-:global(.active) {
-  color: orangered;
+.link {
+  font-size: 24px;
+  color: blue;
+  text-decoration: none;
+}
+.active {
+  font-size: 26px;
+  color: rgb(30, 30, 122);
 }
